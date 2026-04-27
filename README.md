@@ -1,13 +1,12 @@
-# Online Bookstore Backend (Spring Boot)
+# Online Bookstore Backend (Java, No Maven)
 
-A job-relevant backend starter with CRUD, cart management, and checkout logic.
+A backend starter built with pure Java (`HttpServer`) and in-memory storage.
 
 ## Tech Stack
 
-- Java 17
-- Spring Boot
-- Spring Data JPA
-- H2 (can be switched to PostgreSQL)
+- Java 17+
+- Built-in HTTP server (`com.sun.net.httpserver.HttpServer`)
+- No Maven, no external libraries
 
 ## Features
 
@@ -17,13 +16,17 @@ A job-relevant backend starter with CRUD, cart management, and checkout logic.
 
 ## Run
 
-```bash
-mvn spring-boot:run
+```powershell
+.\run.ps1
 ```
+
+Server starts at `http://localhost:8080`
 
 ## APIs
 
+- `GET /health`
 - `GET /api/books`
+- `GET /api/books/{id}`
 - `POST /api/books`
 - `PUT /api/books/{id}`
 - `DELETE /api/books/{id}`
@@ -31,3 +34,25 @@ mvn spring-boot:run
 - `GET /api/cart/{sessionId}`
 - `POST /api/cart/{sessionId}/checkout`
 - `GET /api/orders/{sessionId}`
+
+## Example Payloads
+
+Create book:
+
+```json
+{
+  "title": "Refactoring",
+  "author": "Martin Fowler",
+  "price": 650,
+  "stock": 8
+}
+```
+
+Add cart item:
+
+```json
+{
+  "bookId": 1,
+  "quantity": 2
+}
+```
