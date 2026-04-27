@@ -19,8 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
 public class BookstoreApplication {
+    private static final Logger LOGGER = Logger.getLogger(BookstoreApplication.class.getName());
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     private final BookstoreService service = new BookstoreService();
@@ -39,7 +41,13 @@ public class BookstoreApplication {
         server.setExecutor(Executors.newFixedThreadPool(8));
         server.start();
 
-        System.out.println("Bookstore API started on http://localhost:" + port);
+        LOGGER.info("Bookstore API started on http://localhost:" + port);
+    }
+
+    private static void addCorsHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
     }
 
     private void handleHealth(HttpExchange exchange) throws IOException {
@@ -198,6 +206,9 @@ public class BookstoreApplication {
     }
 
     private static void sendJson(HttpExchange exchange, int statusCode, String json) throws IOException {
+        addCorsHeaders(exchange);
+        LOGGER.info(exchange.getRequestMethod() + " " + exchange.getRequestURI().getPath() + " → " + statusCode);
+
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         if (statusCode == 204) {
             exchange.sendResponseHeaders(statusCode, -1);
