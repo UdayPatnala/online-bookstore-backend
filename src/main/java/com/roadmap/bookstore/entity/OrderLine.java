@@ -1,49 +1,43 @@
 package com.roadmap.bookstore.entity;
 
 public class OrderLine {
-    private Long id;
-    private Long orderId;
-    private Long bookId;
-    private Integer quantity;
-    private Double priceAtPurchase;
 
-    public Long getId() {
-        return id;
-    }
+    private long id;
+    private long orderId;
+    private long bookId;
+    private int quantity;
+    private double priceAtPurchase; // snapshot of price when order was placed
 
-    public void setId(Long id) {
+    public OrderLine() {}
+
+    public OrderLine(long id, long orderId, long bookId,
+                     int quantity, double priceAtPurchase) {
         this.id = id;
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
         this.orderId = orderId;
-    }
-
-    public Long getBookId() {
-        return bookId;
-    }
-
-    public void setBookId(Long bookId) {
         this.bookId = bookId;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Integer quantity) {
         this.quantity = quantity;
-    }
-
-    public Double getPriceAtPurchase() {
-        return priceAtPurchase;
-    }
-
-    public void setPriceAtPurchase(Double priceAtPurchase) {
         this.priceAtPurchase = priceAtPurchase;
+    }
+
+    public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
+
+    public long getOrderId() { return orderId; }
+    public void setOrderId(long orderId) { this.orderId = orderId; }
+
+    public long getBookId() { return bookId; }
+    public void setBookId(long bookId) { this.bookId = bookId; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public double getPriceAtPurchase() { return priceAtPurchase; }
+    public void setPriceAtPurchase(double priceAtPurchase) { this.priceAtPurchase = priceAtPurchase; }
+
+    @Override
+    public String toString() {
+        return "OrderLine{id=" + id + ", orderId=" + orderId
+                + ", bookId=" + bookId + ", qty=" + quantity
+                + ", price=" + priceAtPurchase + "}";
     }
 }

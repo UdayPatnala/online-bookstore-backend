@@ -1,130 +1,60 @@
-# Online Bookstore — REST API (Java)
+# Online Bookstore Backend (Pure Java)
 
-A backend REST API for an online bookstore with book CRUD, session-based shopping cart, and checkout workflow. Built with pure Java `HttpServer` — no Spring, no Maven, no external dependencies.
+I built this project to learn how to create a REST API from scratch using only **Core Java**. No Spring Boot, no Maven, and no Hibernate—just pure logic and the built-in Java libraries.
 
-## Tech Stack
+## Why I built this?
+Most people start with Spring Boot, but I wanted to understand:
+1. How HTTP servers actually listen for requests.
+2. How to handle routing and path variables manually.
+3. How to manage data and thread safety in an in-memory "database".
+4. How JSON parsing works under the hood.
 
-- **Java 17+**
-- **Built-in HTTP server** (`com.sun.net.httpserver.HttpServer`)
-- **In-memory data store** (concurrent-safe maps)
+## What I Learned
+- **`com.sun.net.httpserver`**: Learned how to set up an HTTP server and create "contexts" for different routes.
+- **Multithreading**: Used a `FixedThreadPool` and `synchronized` methods to ensure the app doesn't crash or corrupt data when multiple users access it at once.
+- **REST Principles**: Implemented standard CRUD (Create, Read, Update, Delete) and proper HTTP status codes (200, 201, 204, 400, 404, 409).
+- **Atomic Operations**: The checkout logic ensures that stock is only deducted if ALL items are available, preventing partial orders.
+- **Manual JSON**: Since I didn't use Jackson, I wrote my own `JsonUtil` and manual serialization logic to understand the JSON format.
 
-## Architecture
-
-```
-                    ┌─────────────────────────┐
-  HTTP Request ───▶ │  BookstoreApplication    │
-                    │  (routing + serialization)│
-                    └────────┬────────────────┘
-                             │
-                             ▼
-                    ┌─────────────────────────┐
-                    │   BookstoreService       │
-                    │   (business logic)       │
-                    │                          │
-                    │  Books  │ Carts │ Orders │
-                    └─────────────────────────┘
-
-  Entities: Book, CartItem, CustomerOrder, OrderLine
-  Utility:  JsonUtil (manual JSON parser — no Jackson)
-```
-
-## Run
-
-```powershell
-.\run.ps1
-```
-
-Server starts at `http://localhost:8080`
-
-## API Reference
-
-### Health Check
-
-```
-GET /health
-→ { "status": "ok" }
-```
-
-### Books
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/books` | List all books |
-| GET | `/api/books/{id}` | Get book by ID |
-| POST | `/api/books` | Create a book |
-| PUT | `/api/books/{id}` | Update a book |
-| DELETE | `/api/books/{id}` | Delete a book |
-
-**Create / Update body:**
-
-```json
-{
-  "title": "Refactoring",
-  "author": "Martin Fowler",
-  "price": 650,
-  "stock": 8
-}
-```
-
-### Shopping Cart
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/cart/{sessionId}` | View cart items |
-| POST | `/api/cart/{sessionId}/items` | Add item to cart |
-| POST | `/api/cart/{sessionId}/checkout` | Checkout cart → create order |
-
-**Add to cart:**
-
-```json
-{
-  "bookId": 1,
-  "quantity": 2
-}
-```
-
-### Orders
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders/{sessionId}` | List orders for a session |
-
-## Seeded Data
-
-The API starts with 3 books pre-loaded:
-
-| ID | Title | Author | Price | Stock |
-|----|-------|--------|-------|-------|
-| 1 | Clean Code | Robert C. Martin | 499 | 20 |
-| 2 | Effective Java | Joshua Bloch | 599 | 15 |
-| 3 | Designing Data-Intensive Applications | Martin Kleppmann | 799 | 10 |
+## Features
+- **Book Catalog**: Full CRUD operations for managing books.
+- **Shopping Cart**: Session-based cart (uses a `sessionId` string to track users).
+- **Checkout**: Validates stock, calculates total, creates an order, and clears the cart.
+- **In-Memory Storage**: Data persists as long as the server is running.
 
 ## Project Structure
-
 ```
-├── src/main/java/com/roadmap/bookstore/
-│   ├── BookstoreApplication.java   # HTTP server + routing
-│   ├── entity/
-│   │   ├── Book.java
-│   │   ├── CartItem.java
-│   │   ├── CustomerOrder.java
-│   │   └── OrderLine.java
-│   ├── service/
-│   │   └── BookstoreService.java   # Business logic (thread-safe)
-│   └── util/
-│       └── JsonUtil.java           # Lightweight JSON parser
-├── run.ps1
-└── README.md
+src/main/java/com/roadmap/bookstore/
+├── BookstoreApplication.java    # Server setup + Routing
+├── service/
+│   └── BookstoreService.java    # Business logic & In-memory data
+├── entity/                      # Data models (Book, CartItem, Order, etc.)
+├── util/
+│   └── JsonUtil.java            # Simple manual JSON helper
 ```
 
-## Key Concepts
+## How to Run
+1. Make sure you have Java 17+ installed.
+2. Run the build script:
+   ```powershell
+   .\run.ps1
+   ```
+3. The API will be available at `http://localhost:8080`.
 
-- **Pure Java HTTP server** — no framework overhead
-- **Thread safety** — all service methods are `synchronized`
-- **Manual JSON parsing** — handles nested objects, escaping, edge cases
-- **Clean architecture** — entity / service / routing separation
-- **Checkout workflow** — stock validation → stock deduction → order creation
+## API Endpoints
+
+### Books
+- `GET /api/books` - List all books
+- `POST /api/books` - Create a new book
+- `GET /api/books/{id}` - Get book details
+- `PUT /api/books/{id}` - Update a book
+- `DELETE /api/books/{id}` - Delete a book
+
+### Cart & Orders
+- `GET /api/cart/{sessionId}` - View current cart
+- `POST /api/cart/{sessionId}/items` - Add a book to cart
+- `POST /api/cart/{sessionId}/checkout` - Place an order
+- `GET /api/orders/{sessionId}` - View order history
 
 ## License
-
 MIT

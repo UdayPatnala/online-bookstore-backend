@@ -5,9 +5,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * JsonUtil - A simple, manual JSON parser.
+ * 
+ * Instead of using a library like Jackson or GSON, I wrote this to learn
+ * how JSON strings are actually parsed. It handles basic things like
+ * unquoting strings and finding colons, but it taught me a lot about
+ * string manipulation in Java!
+ */
 public final class JsonUtil {
-    private JsonUtil() {
-    }
+
+    private JsonUtil() {}
+
+    // --- Parsing ---
 
     public static Map<String, String> parseObject(String json) {
         if (json == null || json.isBlank()) {
@@ -27,21 +37,19 @@ public final class JsonUtil {
         }
 
         for (String pair : splitTopLevel(body, ',')) {
-            int colonIndex = findTopLevelColon(pair);
-            if (colonIndex <= 0) {
+            int colon = findTopLevelColon(pair);
+            if (colon <= 0) {
                 throw new IllegalArgumentException("Invalid JSON key/value pair");
             }
-
-            String keyPart = pair.substring(0, colonIndex).trim();
-            String valuePart = pair.substring(colonIndex + 1).trim();
-
-            String key = unquote(keyPart);
-            String value = unquote(valuePart);
+            String key = unquote(pair.substring(0, colon).trim());
+            String value = unquote(pair.substring(colon + 1).trim());
             result.put(key, value);
         }
 
         return result;
     }
+
+    // --- Field extraction helpers ---
 
     public static String requireString(Map<String, String> map, String key) {
         String value = map.get(key);
@@ -52,36 +60,33 @@ public final class JsonUtil {
     }
 
     public static long requireLong(Map<String, String> map, String key) {
-        String value = requireString(map, key);
         try {
-            return Long.parseLong(value);
-        } catch (NumberFormatException exception) {
+            return Long.parseLong(requireString(map, key));
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid long value for field: " + key);
         }
     }
 
     public static int requireInt(Map<String, String> map, String key) {
-        String value = requireString(map, key);
         try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException exception) {
+            return Integer.parseInt(requireString(map, key));
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid int value for field: " + key);
         }
     }
 
     public static double requireDouble(Map<String, String> map, String key) {
-        String value = requireString(map, key);
         try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException exception) {
+            return Double.parseDouble(requireString(map, key));
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid number value for field: " + key);
         }
     }
 
+    // --- Serialization ---
+
     public static String quote(String value) {
-        if (value == null) {
-            return "null";
-        }
+        if (value == null) return "null";
         String escaped = value
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
@@ -89,6 +94,8 @@ public final class JsonUtil {
                 .replace("\r", "\\r");
         return "\"" + escaped + "\"";
     }
+
+    // --- Internal helpers ---
 
     private static List<String> splitTopLevel(String value, char delimiter) {
         List<String> parts = new ArrayList<>();
@@ -121,19 +128,17 @@ public final class JsonUtil {
             if (ch == '"' && !isEscaped(pair, i)) {
                 inQuotes = !inQuotes;
             }
-            if (ch == ':' && !inQuotes) {
-                return i;
-            }
+            if (ch == ':' && !inQuotes) return i;
         }
         return -1;
     }
 
-    private static boolean isEscaped(String value, int quoteIndex) {
-        int slashCount = 0;
-        for (int i = quoteIndex - 1; i >= 0 && value.charAt(i) == '\\'; i--) {
-            slashCount++;
+    private static boolean isEscaped(String value, int index) {
+        int count = 0;
+        for (int i = index - 1; i >= 0 && value.charAt(i) == '\\'; i--) {
+            count++;
         }
-        return slashCount % 2 == 1;
+        return count % 2 == 1;
     }
 
     private static String unquote(String raw) {
